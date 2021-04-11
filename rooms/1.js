@@ -3,30 +3,25 @@ import { randomNumber } from './utils.js';
 import { allPlayersExcept, randomPlayer } from './players.js';
 
 export default {
-  players: ['p1', 'p2', 'p3'],
   components: [
-    {
-      id: 'intro.setup',
-      type: 'hidden',
-      behaviors: {
-        add: [() => add('intro.title'), () => add('intro.t1'), () => add('intro.t2'), () => add('intro.b1'), () => remove('intro.setup')],
-      },
-    },
     {
       id: 'intro.title',
       type: 'text',
+      state: 'active',
       visibility: ['p1', 'p2', 'p3'],
       data: { content: '<h1>Coming together is a beginning.</h1>' },
     },
     {
       id: 'intro.t1',
       type: 'text',
+      state: 'active',
       visibility: ['p1', 'p2'],
       data: { content: '<p>Wait for instructions.</p>' },
     },
     {
       id: 'intro.t2',
       type: 'text',
+      state: 'active',
       visibility: ['p3'],
       data: {
         content:
@@ -36,6 +31,7 @@ export default {
     {
       id: 'intro.b1',
       type: 'button',
+      state: 'active',
       visibility: ['p3'],
       data: { content: "Let's go!" },
       behaviors: {

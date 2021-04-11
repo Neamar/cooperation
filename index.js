@@ -5,6 +5,11 @@ import fs from 'fs';
 
 import index from './routes/index.js';
 import newGame from './routes/new-game.js';
+import gameIndex from './routes/game/index.js';
+import gameJoin from './routes/game/join.js';
+import gameStart from './routes/game/start.js';
+import gameLobby from './routes/game/lobby.js';
+import nunjuckEnvironment from './lib/nunjucks.js';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -12,8 +17,16 @@ var io = new Server(httpServer);
 
 const rooms = {};
 
+// Set config
+nunjuckEnvironment(app);
+
+// Router
 app.get('/', index);
 app.get('/new-game/:id', newGame);
+app.get('/game/:gameId/lobby', gameLobby);
+app.get('/game/:gameId/join', gameJoin);
+app.get('/game/:gameId/start', gameStart);
+app.get('/game/:gameId/player/:playerId', gameIndex);
 
 app.get('/player', (req, res) => {
   res.sendFile(`${__dirname}/player.html`);
