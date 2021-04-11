@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 import pointOfView from 'point-of-view';
 import nunjucks from 'nunjucks';
-
+import fastifySocketIo from 'fastify-socket.io';
 import index from './routes/index.js';
 import newGame from './routes/new-game.js';
 import gameIndex from './routes/game/index.js';
@@ -17,6 +17,7 @@ app.register(pointOfView, {
     nunjucks,
   },
 });
+app.register(fastifySocketIo, {});
 
 // Router
 app.get('/', index);
