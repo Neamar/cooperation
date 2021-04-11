@@ -9,17 +9,17 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cooperation.settings")
 
-from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 import game.routing
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cooperation.settings")
 
 
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
-        "websocket": AuthMiddlewareStack(URLRouter(game.routing.websocket_urlpatterns)),
+        "websocket": URLRouter(game.routing.websocket_urlpatterns),
     }
 )
