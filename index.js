@@ -3,20 +3,17 @@ import http from 'http';
 import { Server } from 'socket.io';
 import fs from 'fs';
 
+import index from './routes/index.js';
+import newGame from './routes/new-game.js';
+
 const app = express();
 const httpServer = http.createServer(app);
 var io = new Server(httpServer);
 
 const rooms = {};
 
-app.get('/', (req, res) => {
-  res.redirect('/new-game/1');
-});
-
-app.get('/new-game/:id', (req, res) => {
-  console.log(req.params); //?game_id=' + Math.random().toString().replace('0.', '')
-  res.send('/new-game/1');
-});
+app.get('/', index);
+app.get('/new-game/:id', newGame);
 
 app.get('/player', (req, res) => {
   res.sendFile(`${__dirname}/player.html`);
