@@ -8,5 +8,5 @@ export default async (req, res) => {
     throw new Error('This game does not accept new players.');
   }
 
-  res.render('game/lobby.html', { gameId: gameId });
+  return res.view('views/game/lobby.html', { gameId: gameId });
 };

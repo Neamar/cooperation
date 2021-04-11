@@ -8,21 +8,29 @@ export default {
       id: 'intro.title',
       type: 'text',
       state: 'active',
-      visibility: ['p1', 'p2', 'p3'],
+      visibility: ['__all__'],
       data: { content: '<h1>Coming together is a beginning.</h1>' },
     },
     {
       id: 'intro.t1',
       type: 'text',
       state: 'active',
-      visibility: ['p1', 'p2'],
       data: { content: '<p>Wait for instructions.</p>' },
+      behaviors: {
+        add: [
+          () => {
+            const mainPlayer = randomPlayer();
+            set(this, 'visibility', allPlayersExcept(mainPlayer));
+            set('intro.t2', 'visibility', [mainPlayer]);
+            set('intro.b1', 'visibility', [mainPlayer]);
+          },
+        ],
+      },
     },
     {
       id: 'intro.t2',
       type: 'text',
       state: 'active',
-      visibility: ['p3'],
       data: {
         content:
           '<p>Welcome!<br>This is a game of cooperation.<br>Please make sure that everyone can hear you, and that you can hear everyone, then press the button below.</p>',
@@ -32,7 +40,6 @@ export default {
       id: 'intro.b1',
       type: 'button',
       state: 'active',
-      visibility: ['p3'],
       data: { content: "Let's go!" },
       behaviors: {
         click: [() => remove('intro.t1'), () => remove('intro.t2'), () => remove('intro.b1'), () => add('intro.lockbox')],
