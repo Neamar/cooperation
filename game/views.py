@@ -1,6 +1,6 @@
-import json
 from random import randint
-
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -20,7 +20,7 @@ def index(request):
 
 
 def game(request, game_id, player_id):
-    return render(request, "game/game.html", {"game_id": game_id})
+    return render(request, "game/game.html", {"game_id": game_id, "player_id": player_id})
 
 
 def game_lobby(request, game_id):
@@ -35,9 +35,15 @@ def game_join(request, game_id):
 
     player_id = "p%s" % randint(1, 2147483640)
 
-    state = json.loads(game_state.state)
+    state = game_state.get_state()
     state["players"].append(player_id)
-    game_state.state = json.dumps(state)
+    game_state.state = state
     game_state.save()
+
+    # Notify existing players
+    layer = get_channel_layer()
+    async_to_sync(layer.group_send)(
+        game_state.get_channel_name(), {"type": "send_state", "game_state": game_state.get_state()}
+    )
 
     return redirect(game, game_id=game_state.game_id, player_id=player_id)
