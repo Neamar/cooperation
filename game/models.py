@@ -3,12 +3,19 @@ from django.db import models
 
 
 class GameState(models.Model):
-    STATE_GATHERING_PLAYERS = "GATHERING_PLAYERS"
-    STATE_PLAYING = "PLAYING"
-    STATE_DONE = "DONE"
+    GATHERING_PLAYERS = "GATH"
+    PLAY = "PLAY"
+    DONE = "DONE"
+
+    STATUS_CHOICES = [
+        (GATHERING_PLAYERS, "Gathering players"),
+        (PLAY, "Playing"),
+        (DONE, "Finished"),
+    ]
 
     game_id = models.IntegerField(unique=True)
     created_at = models.DateField(auto_now_add=True)
+    status = models.TextField(choices=STATUS_CHOICES, max_length=4, default=GATHERING_PLAYERS)
     state = models.JSONField()
 
     def get_state(self):

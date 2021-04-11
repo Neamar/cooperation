@@ -1,6 +1,5 @@
 import inspect
 import json
-from game.models import GameState
 
 
 def stringify_functions(obj):
@@ -31,6 +30,5 @@ def serialize(level):
         if "behaviors" not in component:
             component["behaviors"] = {}
     level["players"] = []
-    level["state"] = GameState.STATE_GATHERING_PLAYERS
 
     return json.dumps(level, default=stringify_functions)

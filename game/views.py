@@ -1,7 +1,9 @@
 from random import randint
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from game.levels.level_1 import LEVEL
@@ -16,22 +18,21 @@ def index(request):
 
     game = GameState(game_id=randint(1, 2147483640), state=default_state)
     game.save()
-    return redirect(game_lobby, game_id=game.game_id)
+    return redirect(game_join, game_id=game.game_id)
 
 
 def game(request, game_id, player_id):
-    return render(request, "game/game.html", {"game_id": game_id, "player_id": player_id})
-
-
-def game_lobby(request, game_id):
     get_object_or_404(GameState, game_id=game_id)
 
-    return render(request, "game/lobby.html", {"game_id": game_id})
+    return render(request, "game/game.html", {"game_id": game_id, "player_id": player_id})
 
 
 @transaction.atomic
 def game_join(request, game_id):
     game_state = get_object_or_404(GameState, game_id=game_id)
+
+    if game_state.status != GameState.GATHERING_PLAYERS:
+        raise Http404("Can't join game anymore")
 
     player_id = "p%s" % randint(1, 2147483640)
 
