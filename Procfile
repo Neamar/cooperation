@@ -1,1 +1,1 @@
-web: gunicorn cooperation.wsgi
+web: daphne cooperation.asgi:application --port $PORT --bind 0.0.0.0 -v2
