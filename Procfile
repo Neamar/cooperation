@@ -1,1 +1,1 @@
-web: daphne -p $PORT cooperation.asgi:application
+web: gunicorn cooperation.wsgi
