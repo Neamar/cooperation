@@ -13,8 +13,8 @@ def init(c):
 def initialize_lockbox(c):
     for i, player in enumerate(all_players_except(c.visibility)):
         duplicate_component = duplicate("intro.lockbox.part")
-        set(duplicate_component, "id", "intro.lockbox.part.%s" % p)
-        set(duplicate_component, "visibility", [p])
+        set(duplicate_component, "id", "intro.lockbox.part.%s" % player)
+        set(duplicate_component, "visibility", [player])
         n = "X" * len(c.game.players)
         n[i] = c.data.solution[i]
         set(duplicate_component, "data.value", n)
