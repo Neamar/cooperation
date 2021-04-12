@@ -3,63 +3,83 @@
 {% block content %}
 
 
+<p>Get players to join with: <a href="/game/{{ game_id }}/join">this link</a></p>
 {% verbatim %}
 <div id="app">
-    <p>Get players to join with: <a href="/game/{{ gameId }}/join">this link</a></p>
+  <h2>{{ players.length }} players</h2>
+  <ul>
+    <li v-for="player in players">
+      {{ player }}
+    </li>
+  </ul>
 
-    <button id="start">Start the game</button>
+  <div v-if="status === 'GATH'">
+    <button v-on:click="startGame()">Start the game</button>
 
     <p>Clicking this will prevent other players from joining.</p>
-    {{ status }}
+  </div>
+  <div v-if="status === 'PLAY'">
+    YOU'RE IN GAME
+  </div>
+  {{ status }}
 
-    <ul>
-        <li v-for="player in players">
-            {{ player }}
-        </li>
-    </ul>
+
 </div>
 {% endverbatim %}
 
 {% endblock %}
 {% block script %}
-<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/vue@next"></script>
 <script>
-const gameId = "{{ game_id }}";
-const playerId = "{{ player_id }}";
+  const gameId = "{{ game_id }}";
+  const playerId = "{{ player_id }}";
 
-const app = new Vue({
-  el: '#app',
-  data: {
-    gameId,
-    status: 'GATH',
-    players: [],
-    components: []
-  }
-})
-
-const chatSocket = new WebSocket(
+  const chatSocket = new WebSocket(
     (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
     + window.location.host
     + '/ws/game/'
     + gameId
     + '/player/'
     + playerId
-);
+  );
 
-chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    Object.keys(data).forEach(k => {
-        app[k] = data[k];
-    })
-};
+  const sendMessage = (obj) => {
+    chatSocket.send(JSON.stringify(obj))
+  }
 
-chatSocket.onclose = function(e) {
+  const App = {
+    data() {
+      return {
+        gameId,
+        status: 'GATH',
+        players: ["coucou"],
+        components: []
+      }
+    },
+    methods: {
+      startGame() {
+        sendMessage({ "_type": "start_game" });
+      }
+    },
+    mounted() {
+      const self = this;
+      chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log(data)
+        Object.keys(data).forEach(k => {
+          self[k] = data[k];
+        });
+      };
+    }
+  }
+
+  Vue.createApp(App).mount('#app')
+
+
+
+  chatSocket.onclose = function (e) {
     console.error('Chat socket closed unexpectedly');
-};
-
-chatSocket.onopen = function(e) {
-    chatSocket.send('{"_type": "request_refresh"}')
-}
+  };
 
 </script>
 {% endblock%}

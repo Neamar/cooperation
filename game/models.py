@@ -4,12 +4,12 @@ from django.db import models
 
 class GameState(models.Model):
     GATHERING_PLAYERS = "GATH"
-    PLAY = "PLAY"
+    PLAYING = "PLAY"
     DONE = "DONE"
 
     STATUS_CHOICES = [
         (GATHERING_PLAYERS, "Gathering players"),
-        (PLAY, "Playing"),
+        (PLAYING, "Playing"),
         (DONE, "Finished"),
     ]
 

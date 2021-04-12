@@ -36,7 +36,11 @@ class GameConsumer(WebsocketConsumer):
         data_json = json.loads(text_data)
 
         t = data_json["_type"]
-        print(t)
+        if hasattr(self, t):
+            getattr(self, t)(self.get_game_state(), data_json)
+        else:
+            raise "Unknown type %s" % t
+
         # if t == "request_refresh":
         #     latest_state = self.get_game_state()
         #     self.send_state(latest_state.get_state())
@@ -54,6 +58,18 @@ class GameConsumer(WebsocketConsumer):
             ],
         }
         self.send_json(out)
+
+    def send_status(self, event):
+        self.send_json({"status": event["status"]})
+
+    def start_game(self, game_state, event):
+        if game_state.status == GameState.GATHERING_PLAYERS:
+            game_state.status = GameState.PLAYING
+            game_state.save()
+            async_to_sync(self.channel_layer.group_send)(
+                game_state.get_channel_name(),
+                {"type": "send_status", "status": game_state.status},
+            )
 
     # # Receive message from room group
     # def chat_message(self, event):
