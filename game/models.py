@@ -2,7 +2,7 @@ import json
 from django.db import models
 
 
-class GameState(models.Model):
+class Game(models.Model):
     GATHERING_PLAYERS = "GATH"
     PLAYING = "PLAY"
     DONE = "DONE"
@@ -17,6 +17,7 @@ class GameState(models.Model):
     created_at = models.DateField(auto_now_add=True)
     status = models.TextField(choices=STATUS_CHOICES, max_length=4, default=GATHERING_PLAYERS)
     state = models.JSONField()
+    fields_to_sync = []
 
     def get_state(self):
         if isinstance(self.state, dict):
@@ -29,3 +30,12 @@ class GameState(models.Model):
 
     def __str__(self):
         return "%s" % self.game_id
+
+    def start_game(self, event):
+        if self.status == Game.GATHERING_PLAYERS:
+            self.status = Game.PLAYING
+            state = self.get_state()
+            for component in state["components"]:
+                if len(component["visibility"]) and component["visibility"][0] == "__all__":
+                    component["visibility"] = state["players"]
+            self.save()

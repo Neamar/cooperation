@@ -2,7 +2,7 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-from game.models import GameState
+from game.models import Game
 
 
 class GameConsumer(WebsocketConsumer):
@@ -13,67 +13,63 @@ class GameConsumer(WebsocketConsumer):
         self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
         self.player_id = self.scope["url_route"]["kwargs"]["player_id"]
 
-        game_state = self.get_game_state()
-        self.room_group_name = game_state.get_channel_name()
+        game = self.get_game()
+        self.room_group_name = game.get_channel_name()
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(self.room_group_name, self.channel_name)
 
         self.accept()
 
-        self.send_state({"game_state": game_state.get_state()})
-        self.send_json({"status": game_state.status})
+        self.send_update({"status": game.status, "state": game.get_state()})
 
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
 
-    def get_game_state(self):
-        return GameState.objects.get(game_id=self.game_id)
+    def get_game(self):
+        return Game.objects.get(game_id=self.game_id)
 
     # Receive message from WebSocket
     def receive(self, text_data):
+        """
+        Forward socket message to model
+        """
         data_json = json.loads(text_data)
 
         t = data_json["_type"]
-        if hasattr(self, t):
-            getattr(self, t)(self.get_game_state(), data_json)
+        game = self.get_game()
+        if hasattr(game, t):
+            getattr(game, t)(data_json)
         else:
             raise "Unknown type %s" % t
 
-        # if t == "request_refresh":
-        #     latest_state = self.get_game_state()
-        #     self.send_state(latest_state.get_state())
-        # async_to_sync(self.channel_layer.group_send)(
-        #     self.room_group_name, {"type": "chat_message", "message": message}
-        # )
+    def clean_component_for_sending(self, component):
+        """
+        Hide some attributes from the players
+        """
+        component_to_send = component.copy()
+        component_to_send.pop("visibility")
+        behaviors = component_to_send.pop("behaviors")
+        component_to_send["behaviors"] = list(behaviors.keys())
+        return component_to_send
 
-    def send_state(self, event):
-        game_state = event["game_state"]
+    def send_update(self, event):
+        """
+        Send an update to the connected socket
+        """
+        out = {}
 
-        out = {
-            "players": game_state["players"],
-            "components": [
-                c for c in game_state["components"] if self.player_id in c["visibility"]
-            ],
-        }
+        if "state" in event:
+            game_state = event["state"]
+
+            out["players"] = game_state["players"]
+            out["components"] = [
+                self.clean_component_for_sending(c)
+                for c in game_state["components"]
+                if self.player_id in c["visibility"]
+            ]
+        if "status" in event:
+            out["status"] = event["status"]
+
         self.send_json(out)
-
-    def send_status(self, event):
-        self.send_json({"status": event["status"]})
-
-    def start_game(self, game_state, event):
-        if game_state.status == GameState.GATHERING_PLAYERS:
-            game_state.status = GameState.PLAYING
-            game_state.save()
-            async_to_sync(self.channel_layer.group_send)(
-                game_state.get_channel_name(),
-                {"type": "send_status", "status": game_state.status},
-            )
-
-    # # Receive message from room group
-    # def chat_message(self, event):
-    #     message = event["message"]
-
-    #     # Send message to WebSocket
-    #     self.send(text_data=json.dumps({"message": message}))
