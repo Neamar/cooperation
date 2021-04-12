@@ -6,6 +6,9 @@ from game.models import GameState
 
 
 class GameConsumer(WebsocketConsumer):
+    def send_json(self, obj):
+        self.send(text_data=json.dumps(obj))
+
     def connect(self):
         self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
         self.player_id = self.scope["url_route"]["kwargs"]["player_id"]
@@ -19,6 +22,7 @@ class GameConsumer(WebsocketConsumer):
         self.accept()
 
         self.send_state({"game_state": game_state.get_state()})
+        self.send_json({"status": game_state.status})
 
     def disconnect(self, close_code):
         # Leave room group
@@ -45,12 +49,11 @@ class GameConsumer(WebsocketConsumer):
 
         out = {
             "players": game_state["players"],
-            "state": game_state["state"],
             "components": [
                 c for c in game_state["components"] if self.player_id in c["visibility"]
             ],
         }
-        self.send(text_data=json.dumps(out))
+        self.send_json(out)
 
     # # Receive message from room group
     # def chat_message(self, event):

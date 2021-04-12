@@ -1,39 +1,65 @@
 {% extends "base.html"%}
 
 {% block content %}
-<p>Get players to join with: <a href="/game/{{ game_id }}/join">this link</a></p>
 
-<button id="start">Start the game</button>
 
-<p>Clicking this will prevent other players from joining.</p>
+{% verbatim %}
+<div id="app">
+    <p>Get players to join with: <a href="/game/{{ gameId }}/join">this link</a></p>
+
+    <button id="start">Start the game</button>
+
+    <p>Clicking this will prevent other players from joining.</p>
+    {{ status }}
+
+    <ul>
+        <li v-for="player in players">
+            {{ player }}
+        </li>
+    </ul>
+</div>
+{% endverbatim %}
 
 {% endblock %}
 {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <script>
-    const gameId = "{{ game_id }}";
-    const playerId = "{{ player_id }}";
+const gameId = "{{ game_id }}";
+const playerId = "{{ player_id }}";
 
-    const chatSocket = new WebSocket(
-        (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
-        + window.location.host
-        + '/ws/game/'
-        + gameId
-        + '/player/'
-        + playerId
-    );
+const app = new Vue({
+  el: '#app',
+  data: {
+    gameId,
+    status: 'GATH',
+    players: [],
+    components: []
+  }
+})
 
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        console.log(data);
-        // document.querySelector('#chat-log').value += (data.message + '\n');
-    };
+const chatSocket = new WebSocket(
+    (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+    + window.location.host
+    + '/ws/game/'
+    + gameId
+    + '/player/'
+    + playerId
+);
 
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
-    };
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    Object.keys(data).forEach(k => {
+        app[k] = data[k];
+    })
+};
 
-    chatSocket.onopen = function(e) {
-        chatSocket.send('{"_type": "request_refresh"}')
-    }
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+
+chatSocket.onopen = function(e) {
+    chatSocket.send('{"_type": "request_refresh"}')
+}
+
 </script>
 {% endblock%}
