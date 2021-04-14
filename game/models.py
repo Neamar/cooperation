@@ -2,7 +2,7 @@ import json
 
 from django.db import models
 
-from game.levels.components import add, duplicate, remove, set
+from game.levels.components import add, change, duplicate, remove
 from game.levels.players import all_players_except, random_player
 from game.levels.utils import random_number
 
@@ -49,7 +49,7 @@ class Game(models.Model):
                     "add": add,
                     "duplicate": duplicate,
                     "remove": remove,
-                    "set": set,
+                    "change": change,
                     "all_players_except": all_players_except,
                     "random_player": random_player,
                     "random_number": random_number,

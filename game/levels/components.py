@@ -21,7 +21,7 @@ def duplicate(component):
     pass
 
 
-def set(game, target, path, value):
+def change(game, target, path, value):
     subpaths = path.split(".")
     t = get_target(game, target)
     for subpath in subpaths[:-1]:

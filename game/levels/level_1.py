@@ -1,30 +1,30 @@
-from game.levels.components import add, duplicate, remove, set
+from game.levels.components import add, change, duplicate, remove
 from game.levels.players import all_players_except, random_player
 from game.levels.utils import random_number
 
 
 def init(game, component):
     main_player = random_player(game)
-    set(game, component, "visibility", all_players_except(game, main_player))
-    set(game, "intro.t2", "visibility", [main_player])
-    set(game, "intro.b1", "visibility", [main_player])
+    change(game, component, "visibility", all_players_except(game, main_player))
+    change(game, "intro.t2", "visibility", [main_player])
+    change(game, "intro.b1", "visibility", [main_player])
 
 
 def initialize_lockbox(c):
     for i, player in enumerate(all_players_except(c.visibility)):
         duplicate_component = duplicate("intro.lockbox.part")
-        set(duplicate_component, "id", "intro.lockbox.part.%s" % player)
-        set(duplicate_component, "visibility", [player])
+        change(duplicate_component, "id", "intro.lockbox.part.%s" % player)
+        change(duplicate_component, "visibility", [player])
         n = "X" * len(c.game.players)
         n[i] = c.data.solution[i]
-        set(duplicate_component, "data.value", n)
+        change(duplicate_component, "data.value", n)
         add(duplicate_component)
 
 
 def validate_lockbox(c):
     if c.data.value == c.data.solution:
         remove("intro.lockbox*")
-        set("intro.title", "data.content", "Keeping together is progress")
+        change("intro.title", "data.content", "Keeping together is progress")
 
 
 LEVEL = {
@@ -57,9 +57,9 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
         },
         {
             "id": "intro.b1",
-            "type": "button",
+            "type": "text",
             "state": "active",
-            "data": {"content": "Let's go!"},
+            "data": {"content": "<h3>Let's go!</h3>"},
             "behaviors": {
                 "click": [
                     lambda c: remove("intro.t1"),
@@ -78,8 +78,8 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
             },
             "behaviors": {
                 "add": [
-                    lambda c: set(c, "data.solution", random_number(c.game.players.length - 1)),
-                    lambda c: set(c, "visibility", [random_player()]),
+                    lambda c: change(c, "data.solution", random_number(c.game.players.length - 1)),
+                    lambda c: change(c, "visibility", [random_player()]),
                     initialize_lockbox,
                 ],
                 "input": [validate_lockbox],

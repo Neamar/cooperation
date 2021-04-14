@@ -21,8 +21,10 @@
   </div>
   <div v-if="status === 'PLAY'">
     YOU'RE IN GAME
+    <div v-for="component of components">
+      <text-component :key="component.id" :content="component.data.content" />
+    </div>
   </div>
-  {{ status }}
 
 
 </div>
@@ -35,20 +37,7 @@
   const gameId = "{{ game_id }}";
   const playerId = "{{ player_id }}";
 
-  const chatSocket = new WebSocket(
-    (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
-    + window.location.host
-    + '/ws/game/'
-    + gameId
-    + '/player/'
-    + playerId
-  );
-
-  const sendMessage = (obj) => {
-    chatSocket.send(JSON.stringify(obj))
-  }
-
-  const App = {
+  const app = Vue.createApp({
     data() {
       return {
         gameId,
@@ -59,10 +48,24 @@
     },
     methods: {
       startGame() {
-        sendMessage({ "_type": "start_game" });
+        this.sendMessage({ "_type": "start_game" });
       }
     },
     mounted() {
+
+      const chatSocket = new WebSocket(
+        (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+        + window.location.host
+        + '/ws/game/'
+        + gameId
+        + '/player/'
+        + playerId
+      );
+
+      this.sendMessage = (obj) => {
+        chatSocket.send(JSON.stringify(obj))
+      }
+
       const self = this;
       chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
@@ -71,16 +74,22 @@
           self[k] = data[k];
         });
       };
+      chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+      };
     }
-  }
+  });
 
-  Vue.createApp(App).mount('#app')
+  app.component('text-component', {
+    template: `<div v-html="content"></div>`,
+    props: ['content'],
+  })
+
+  app.mount('#app')
 
 
 
-  chatSocket.onclose = function (e) {
-    console.error('Chat socket closed unexpectedly');
-  };
+
 
 </script>
 {% endblock%}

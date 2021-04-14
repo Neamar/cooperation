@@ -69,7 +69,7 @@ class GameConsumer(WebsocketConsumer):
             out["components"] = [
                 self.clean_component_for_sending(c)
                 for c in game_state["components"]
-                if c["state"] == "ACTIVE" and self.player_id in c["visibility"]
+                if c["state"] == "active" and self.player_id in c["visibility"]
             ]
         if "status" in event:
             out["status"] = event["status"]
