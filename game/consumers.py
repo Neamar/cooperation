@@ -2,6 +2,7 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+
 from game.models import Game
 
 
@@ -50,6 +51,7 @@ class GameConsumer(WebsocketConsumer):
         """
         component_to_send = component.copy()
         component_to_send.pop("visibility")
+        component_to_send.pop("state")
         behaviors = component_to_send.pop("behaviors")
         component_to_send["behaviors"] = list(behaviors.keys())
         return component_to_send
@@ -67,7 +69,7 @@ class GameConsumer(WebsocketConsumer):
             out["components"] = [
                 self.clean_component_for_sending(c)
                 for c in game_state["components"]
-                if self.player_id in c["visibility"]
+                if c["state"] == "ACTIVE" and self.player_id in c["visibility"]
             ]
         if "status" in event:
             out["status"] = event["status"]

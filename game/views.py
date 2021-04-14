@@ -1,7 +1,5 @@
 from random import randint
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.db import transaction
 from django.http import HttpResponseGone
 from django.shortcuts import get_object_or_404, redirect, render

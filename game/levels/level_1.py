@@ -1,13 +1,13 @@
-from game.levels.components import add, remove, set, duplicate
-from game.levels.utils import random_number
+from game.levels.components import add, duplicate, remove, set
 from game.levels.players import all_players_except, random_player
+from game.levels.utils import random_number
 
 
-def init(c):
-    main_player = random_player()
-    set(c, "visibility", all_players_except(main_player))
-    set("intro.t2", "visibility", [main_player])
-    set("intro.b1", "visibility", [main_player])
+def init(game, component):
+    main_player = random_player(game)
+    set(game, component, "visibility", all_players_except(game, main_player))
+    set(game, "intro.t2", "visibility", [main_player])
+    set(game, "intro.b1", "visibility", [main_player])
 
 
 def initialize_lockbox(c):

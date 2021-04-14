@@ -1,5 +1,6 @@
 import inspect
 import json
+import re
 
 
 def stringify_functions(obj):
@@ -8,9 +9,10 @@ def stringify_functions(obj):
         if code[-1] == ",":
             code = code[0:-1]
         if code.startswith("lambda c:"):
-            code = code.replace("lambda c:", "")
+            code = code.replace("lambda c:", "").strip()
         else:
-            code = code[code.index("\n") + 1 :]
+            code = code[code.index("\n") :].strip()
+            code = re.sub(r"^    (.+)$", "\\1", code, flags=re.MULTILINE)
         return code
 
     raise TypeError("Can't serialize object of type %s", type(obj))
