@@ -18,7 +18,7 @@ def initialize_lockbox(game, component, run_component_code):
     for i, player in enumerate(all_players_except(game, main_player)):
         duplicated_component = duplicate(game, "intro.lockbox.part", "intro.lockbox.part.%s" % player)
         change(game, duplicated_component, "visibility", [player])
-        n = "X" * len(game["players"])
+        n = "X" * (len(game["players"]) - 1)
         n = n[0:i] + component["data"]["solution"][i] + n[i + 1 :]
         change(game, duplicated_component, "data.value", n)
         enable(game, duplicated_component, run_component_code)

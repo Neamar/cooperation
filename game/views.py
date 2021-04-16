@@ -3,6 +3,7 @@ from random import randint
 from django.db import transaction
 from django.http import HttpResponseGone
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from game.levels.level_1 import LEVEL
 from game.levels.serializer import serialize
@@ -16,9 +17,14 @@ def index(request):
 
     game = Game(game_id=randint(1, 2147483640), state=default_state)
     game.save()
-    return redirect(game_join, game_id=game.game_id)
+
+    if "multi" in request.GET:
+        return redirect(game_multi, game_id=game.game_id)
+    else:
+        return redirect(game_join, game_id=game.game_id)
 
 
+@xframe_options_exempt
 def game(request, game_id, player_id):
     get_object_or_404(Game, game_id=game_id)
 
@@ -27,16 +33,29 @@ def game(request, game_id, player_id):
 
 @transaction.atomic
 def game_join(request, game_id):
-    game_state = get_object_or_404(Game, game_id=game_id)
+    game = get_object_or_404(Game, game_id=game_id)
 
-    if game_state.status != Game.GATHERING_PLAYERS:
+    if game.status != Game.GATHERING_PLAYERS:
         return HttpResponseGone("Can't join game anymore")
 
-    player_id = "p%s" % randint(1, 2147483640)
+    player_id = game.add_player()
+    game.save()
 
-    state = game_state.get_state()
-    state["players"].append(player_id)
-    game_state.state = state
-    game_state.save()
+    return redirect(game, game_id=game.game_id, player_id=player_id)
 
-    return redirect(game, game_id=game_state.game_id, player_id=player_id)
+
+def game_multi(request, game_id):
+    game = get_object_or_404(Game, game_id=game_id)
+
+    player_ids = []
+    if len(game.get_state()["players"]) > 0:
+        player_ids = game.get_state()["players"]
+    else:
+        print("Generating")
+        for i in range(0, 3):
+            player_ids.append(game.add_player())
+        game.save()
+
+    print("UG?", game.get_state()["players"])
+    print(player_ids)
+    return render(request, "game/multi.html", {"game_id": game_id, "player_ids": player_ids})

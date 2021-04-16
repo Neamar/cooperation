@@ -45,6 +45,8 @@ class GameConsumer(WebsocketConsumer):
         else:
             raise Exception("Unknown type %s" % t)
 
+        game.save()
+
     def clean_component_for_sending(self, component):
         """
         Hide some attributes from the players

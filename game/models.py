@@ -1,4 +1,5 @@
 import json
+from random import randint
 
 from django.db import models
 
@@ -12,7 +13,7 @@ def run_component_code(component, state, action):
         return
     functions = component["behaviors"][action]
 
-    print(component["id"], action)
+    print("Running action:", component["id"], action)
     for function in functions:
         try:
             exec(
@@ -53,16 +54,22 @@ class Game(models.Model):
     fields_to_sync = []
 
     def get_state(self):
-        if isinstance(self.state, dict):
-            return self.state
-        else:
-            return json.loads(self.state)
+        if not isinstance(self.state, dict):
+            self.state = json.loads(self.state)
+        return self.state
 
     def get_channel_name(self):
         return "game-%s" % self.game_id
 
     def __str__(self):
         return "%s" % self.game_id
+
+    def add_player(self):
+        player_id = "p%s" % randint(1, 2147483640)
+
+        state = self.get_state()
+        state["players"].append(player_id)
+        return player_id
 
     def start_game(self, event):
         if self.status == Game.GATHERING_PLAYERS:
@@ -79,10 +86,6 @@ class Game(models.Model):
                 if component["state"] == "active":
                     run_component_code(component, state, "enable")
 
-            # save and broadcast
-            self.save()
-
     def component_click(self, event):
         component = get_target(self.get_state(), event["component"])
         run_component_code(component, self.get_state(), "click")
-        self.save()
