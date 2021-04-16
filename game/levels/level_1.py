@@ -1,6 +1,6 @@
-from game.levels.components import add, change, duplicate, remove
+from game.levels.components import change, disable, duplicate, enable
 from game.levels.players import all_players_except, random_player
-from game.levels.utils import random_number
+from game.levels.utils import random_pin
 
 
 def init(game, component):
@@ -10,21 +10,31 @@ def init(game, component):
     change(game, "intro.b1", "visibility", [main_player])
 
 
-def initialize_lockbox(c):
-    for i, player in enumerate(all_players_except(c.visibility)):
-        duplicate_component = duplicate("intro.lockbox.part")
-        change(duplicate_component, "id", "intro.lockbox.part.%s" % player)
-        change(duplicate_component, "visibility", [player])
-        n = "X" * len(c.game.players)
-        n[i] = c.data.solution[i]
-        change(duplicate_component, "data.value", n)
-        add(duplicate_component)
+def initialize_lockbox(game, component, run_component_code):
+    change(game, component, "data.solution", random_pin(len(game["players"]) - 1))
+    main_player = random_player(game)
+    change(game, component, "visibility", [main_player])
+
+    for i, player in enumerate(all_players_except(game, main_player)):
+        duplicated_component = duplicate(game, "intro.lockbox.part", "intro.lockbox.part.%s" % player)
+        change(game, duplicated_component, "visibility", [player])
+        n = "X" * len(game["players"])
+        n = n[0:i] + component["data"]["solution"][i] + n[i + 1 :]
+        change(game, duplicated_component, "data.value", n)
+        enable(game, duplicated_component, run_component_code)
 
 
-def validate_lockbox(c):
-    if c.data.value == c.data.solution:
-        remove("intro.lockbox*")
-        change("intro.title", "data.content", "Keeping together is progress")
+def validate_lockbox(game, component, run_component_code):
+    if component["data"]["value"] == component["data"]["solution"]:
+        disable(game, "intro.lockbox*", run_component_code)
+        change(game, "intro.title", "data.content", "Keeping together is progress")
+
+
+def start(game, component, run_component_code):
+    disable(game, "intro.t1", run_component_code)
+    disable(game, "intro.t2", run_component_code)
+    disable(game, "intro.b1", run_component_code)
+    enable(game, "intro.lockbox", run_component_code)
 
 
 LEVEL = {
@@ -42,7 +52,7 @@ LEVEL = {
             "state": "active",
             "data": {"content": "<p>Wait for instructions.</p>"},
             "behaviors": {
-                "add": [init],
+                "enable": [init],
             },
         },
         {
@@ -57,16 +67,11 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
         },
         {
             "id": "intro.b1",
-            "type": "text",
+            "type": "button",
             "state": "active",
-            "data": {"content": "<h3>Let's go!</h3>"},
+            "data": {"content": "Let's go!"},
             "behaviors": {
-                "click": [
-                    lambda c: remove("intro.t1"),
-                    lambda c: remove("intro.t2"),
-                    lambda c: remove("intro.b1"),
-                    lambda c: add("intro.lockbox"),
-                ],
+                "click": [start],
             },
         },
         {
@@ -77,11 +82,7 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
                 "solution": 0,
             },
             "behaviors": {
-                "add": [
-                    lambda c: change(c, "data.solution", random_number(c.game.players.length - 1)),
-                    lambda c: change(c, "visibility", [random_player()]),
-                    initialize_lockbox,
-                ],
+                "enable": [initialize_lockbox],
                 "input": [validate_lockbox],
             },
         },

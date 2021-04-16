@@ -2,9 +2,37 @@ import json
 
 from django.db import models
 
-from game.levels.components import add, change, duplicate, remove
+from game.levels.components import change, disable, duplicate, enable, get_target
 from game.levels.players import all_players_except, random_player
-from game.levels.utils import random_number
+from game.levels.utils import random_pin
+
+
+def run_component_code(component, state, action):
+    if action not in component["behaviors"]:
+        return
+    functions = component["behaviors"][action]
+
+    print(component["id"], action)
+    for function in functions:
+        try:
+            exec(
+                function,
+                {
+                    "run_component_code": run_component_code,
+                    "component": component,
+                    "game": state,
+                    "enable": enable,
+                    "duplicate": duplicate,
+                    "disable": disable,
+                    "change": change,
+                    "all_players_except": all_players_except,
+                    "random_player": random_player,
+                    "random_pin": random_pin,
+                },
+            )
+        except Exception as e:
+            print(function)
+            raise e
 
 
 class Game(models.Model):
@@ -36,26 +64,6 @@ class Game(models.Model):
     def __str__(self):
         return "%s" % self.game_id
 
-    def run_component_code(self, component, state, action):
-        if action not in component["behaviors"]:
-            return
-        functions = component["behaviors"][action]
-        for function in functions:
-            exec(
-                function,
-                {
-                    "component": component,
-                    "game": state,
-                    "add": add,
-                    "duplicate": duplicate,
-                    "remove": remove,
-                    "change": change,
-                    "all_players_except": all_players_except,
-                    "random_player": random_player,
-                    "random_number": random_number,
-                },
-            )
-
     def start_game(self, event):
         if self.status == Game.GATHERING_PLAYERS:
             self.status = Game.PLAYING
@@ -69,8 +77,12 @@ class Game(models.Model):
             # apply "add" effect for active components
             for component in state["components"]:
                 if component["state"] == "active":
-                    self.run_component_code(component, state, "add")
+                    run_component_code(component, state, "enable")
 
-            print(state["components"])
             # save and broadcast
             self.save()
+
+    def component_click(self, event):
+        component = get_target(self.get_state(), event["component"])
+        run_component_code(component, self.get_state(), "click")
+        self.save()

@@ -1,3 +1,6 @@
+import json
+
+
 def get_target(game, target):
     if type(target) == dict:
         return target
@@ -9,16 +12,25 @@ def get_target(game, target):
             raise Exception("Invalid target: %s" % target)
 
 
-def add(component):
-    pass
+def enable(game, component, run_component_code):
+    c = get_target(game, component)
+    if c["state"] != "active":
+        c["state"] = "active"
+        run_component_code(c, game, "enable")
 
 
-def remove(component):
-    pass
+def disable(game, component, run_component_code):
+    c = get_target(game, component)
+    if c["state"] != "inactive":
+        c["state"] = "inactive"
+        run_component_code(c, game, "disable")
 
 
-def duplicate(component):
-    pass
+def duplicate(game, component, duplicate_id):
+    c = json.loads(json.dumps(get_target(game, component)))
+    c["id"] = duplicate_id
+    game["components"].append(c)
+    return c
 
 
 def change(game, target, path, value):
