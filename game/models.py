@@ -89,3 +89,7 @@ class Game(models.Model):
     def component_click(self, event):
         component = get_target(self.get_state(), event["component"])
         run_component_code(component, self.get_state(), "click")
+
+    def component_input(self, event):
+        component = get_target(self.get_state(), event["component"])
+        run_component_code(component, self.get_state(), "input")

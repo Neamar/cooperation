@@ -79,6 +79,7 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
             "type": "lockbox",
             "data": {
                 "value": 0,
+                "type": "number",
                 "solution": 0,
             },
             "behaviors": {

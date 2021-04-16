@@ -22,7 +22,7 @@
   <div v-if="status === 'PLAY'">
     YOU'RE IN GAME
     <component :is="component.type + '-component'" v-for="component in components" :key="component.id"
-      :data="component.data" @click="click(component)"></component>
+      :data="component.data" @click="click(component)" @input="input(component)"></component>
   </div>
 </div>
 {% endverbatim %}
@@ -51,6 +51,11 @@
       click(component) {
         if (component.behaviors.indexOf('click') !== -1) {
           this.sendMessage({ _type: "component_click", component: component.id })
+        }
+      },
+      input(component) {
+        if (component.behaviors.indexOf('input') !== -1) {
+          this.sendMessage({ _type: "component_input", component: component.id, value: component.value })
         }
       }
     },
@@ -93,7 +98,7 @@
       },
       'lockbox-component': {
         name: 'Lockbox',
-        template: `<input type="text" v-model="data.value" v-bind:disabled="data.disabled" />`,
+        template: `<input v-bind:type="data.type ? data.type : 'text'" v-model="data.value" v-bind:disabled="data.disabled" />`,
         props: ['data'],
       }
     }
