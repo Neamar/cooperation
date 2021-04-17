@@ -21,6 +21,22 @@ class ExecutableContext(models.Model):
     def components(self):
         return self.state["components"]
 
+    def mark_dirty(self, component):
+        """
+        Keep track of all dirty components,
+        they'll need to be synced over the wire
+        (actually we care about players dirtiness, not components, but this is abstracted away for this function)
+        """
+        if not hasattr(self, "_dirty"):
+            self._dirty = set()
+
+        self._dirty.update(component["visibility"])
+
+    def get_dirty_players(self):
+        if not hasattr(self, "_dirty"):
+            self._dirty = set()
+        return self._dirty
+
     def get_target(self, target):
         if type(target) == dict:
             return target
@@ -111,5 +127,5 @@ class Game(ExecutableContext):
         component = self.get_target(event["component"])
         value = event["value"]
         if value != component["data"]["value"]:
-            component["data"]["value"] = value
+            change(self, component, "data.value", value)
             self.exec(component, "input")

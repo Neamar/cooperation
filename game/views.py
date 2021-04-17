@@ -41,19 +41,16 @@ def game_join(request, game_id):
     player_id = game.add_player()
     game.save()
 
-    print(game.game_id, "plid", player_id)
     return redirect("game", game_id=game.game_id, player_id=player_id)
 
 
 def game_multi(request, game_id):
     game = get_object_or_404(Game, game_id=game_id)
-    print(type(game.state), game.state)
 
     player_ids = []
     if len(game.players) > 0:
         player_ids = game.players
     else:
-        print("Generating")
         for i in range(0, 3):
             player_ids.append(game.add_player())
         game.save()

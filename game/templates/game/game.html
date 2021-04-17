@@ -39,7 +39,7 @@
       return {
         gameId,
         status: 'GATH',
-        players: ["coucou"],
+        players: ["loading..."],
         components: []
       }
     },
@@ -71,7 +71,7 @@
         );
         chatSocket.onmessage = function (e) {
           const data = JSON.parse(e.data);
-          console.log(data)
+          console.log(playerId, data)
           Object.keys(data).forEach(k => {
             self[k] = data[k];
           });

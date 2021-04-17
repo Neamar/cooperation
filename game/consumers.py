@@ -60,9 +60,11 @@ class GameConsumer(WebsocketConsumer):
 
     def send_update(self, event):
         """
-        Send an update to the connected socket
+        Send an update to the connected socket (if relevant)
         """
         out = {}
+        if "dirty_players" in event and self.player_id not in event["dirty_players"]:
+            return  # player is not impacted by this change
 
         if "state" in event:
             game_state = event["state"]

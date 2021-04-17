@@ -18,8 +18,12 @@ def game_saved(sender, instance, created, update_fields, **kwargs):
     for field in update_fields:
         payload[field] = getattr(instance, field)
 
+    dirty_players = instance.get_dirty_players()
     layer = get_channel_layer()
     async_to_sync(layer.group_send)(
         instance.get_channel_name(),
-        {"type": "send_update", **payload},
+        {"type": "send_update", "dirty_players": tuple(dirty_players), **payload},
     )
+
+    # clean up dirty player set for potential future saves
+    dirty_players.clear()
