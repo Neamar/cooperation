@@ -1,41 +1,34 @@
 import json
 
 
-def get_target(game, target):
-    if type(target) == dict:
-        return target
-    else:
-        for component in game["components"]:
-            if component["id"] == target:
-                return component
-        else:
-            raise Exception("Invalid target: %s" % target)
-
-
-def enable(game, component, run_component_code):
-    c = get_target(game, component)
+def enable(ctx, component):
+    c = ctx.get_target(component)
     if c["state"] != "active":
         c["state"] = "active"
-        run_component_code(c, game, "enable")
+        ctx.exec(c, "enable")
 
 
-def disable(game, component, run_component_code):
-    c = get_target(game, component)
+def disable(ctx, component):
+    c = ctx.get_target(component)
     if c["state"] != "inactive":
         c["state"] = "inactive"
-        run_component_code(c, game, "disable")
+        ctx.exec(c, "disable")
 
 
-def duplicate(game, component, duplicate_id):
-    c = json.loads(json.dumps(get_target(game, component)))
+def duplicate(ctx, component, duplicate_id):
+    c = json.loads(json.dumps(ctx.get_target(component)))
     c["id"] = duplicate_id
-    game["components"].append(c)
+    ctx.components.append(c)
     return c
 
 
-def change(game, target, path, value):
+def change(ctx, target, path, value):
     subpaths = path.split(".")
-    t = get_target(game, target)
+
+    if subpaths[0] == "state":
+        raise Exception("Don't change state with change(), use enable() or disable()")
+
+    t = ctx.get_target(target)
     for subpath in subpaths[:-1]:
         t = t[subpath]
     t[subpaths[-1]] = value

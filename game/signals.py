@@ -16,10 +16,7 @@ def game_saved(sender, instance, created, update_fields, **kwargs):
 
     payload = {}
     for field in update_fields:
-        if field == "state":
-            payload[field] = instance.get_state()
-        else:
-            payload[field] = getattr(instance, field)
+        payload[field] = getattr(instance, field)
 
     layer = get_channel_layer()
     async_to_sync(layer.group_send)(

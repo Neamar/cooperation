@@ -22,7 +22,7 @@ class GameConsumer(WebsocketConsumer):
 
         self.accept()
 
-        self.send_update({"status": game.status, "state": game.get_state()})
+        self.send_update({"status": game.status, "state": game.state})
 
     def disconnect(self, close_code):
         # Leave room group
@@ -38,7 +38,7 @@ class GameConsumer(WebsocketConsumer):
         """
         data_json = json.loads(text_data)
 
-        t = data_json["_type"]
+        t = "ws_%s" % data_json["_type"]
         game = self.get_game()
         if hasattr(game, t):
             getattr(game, t)(data_json)

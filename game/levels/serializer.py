@@ -33,4 +33,4 @@ def serialize(level):
             component["behaviors"] = {}
     level["players"] = []
 
-    return json.dumps(level, default=stringify_functions)
+    return json.loads(json.dumps(level, default=stringify_functions))
