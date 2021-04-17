@@ -4,7 +4,6 @@
 
 
 <p><a href="/game/">New game</a> | <a href="/game/?multi">New game (multi)</a></p>
-<p>Get players to join with: <a href="/game/{{ game_id }}/join">this link</a></p>
 {% verbatim %}
 <div id="app">
   <h2>{{ players.length }} players</h2>
@@ -15,14 +14,14 @@
   </ul>
 
   <div v-if="status === 'GATH'">
+    <p>Get players to join with: <a v-bind:href="'/game/' +  gameId + '/join'">this link</a></p>
     <button v-on:click="startGame()">Start the game</button>
 
     <p>Clicking this will prevent other players from joining.</p>
   </div>
   <div v-if="status === 'PLAY'">
-    YOU'RE IN GAME
     <component :is="component.type + '-component'" v-for="component in components" :key="component.id"
-      :data="component.data" @click="click(component)" @input="input(component)"></component>
+      :data="component.data" @click="click(component)" @input="input(component, $event)"></component>
   </div>
 </div>
 {% endverbatim %}
@@ -53,37 +52,39 @@
           this.sendMessage({ _type: "component_click", component: component.id })
         }
       },
-      input(component) {
+      input(component, event) {
         if (component.behaviors.indexOf('input') !== -1) {
-          this.sendMessage({ _type: "component_input", component: component.id, value: component.value })
+          this.sendMessage({ _type: "component_input", component: component.id, value: event.target.value })
         }
       }
     },
     mounted() {
-      const chatSocket = new WebSocket(
-        (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
-        + window.location.host
-        + '/ws/game/'
-        + gameId
-        + '/player/'
-        + playerId
-      );
-
-      this.sendMessage = (obj) => {
-        chatSocket.send(JSON.stringify(obj))
-      }
-
       const self = this;
-      chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
-        console.log(data)
-        Object.keys(data).forEach(k => {
-          self[k] = data[k];
-        });
-      };
-      chatSocket.onclose = function (e) {
-        console.error('Chat socket closed unexpectedly');
-      };
+      const setupWebSocket = () => {
+        const chatSocket = new WebSocket(
+          (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+          + window.location.host
+          + '/ws/game/'
+          + gameId
+          + '/player/'
+          + playerId
+        );
+        chatSocket.onmessage = function (e) {
+          const data = JSON.parse(e.data);
+          console.log(data)
+          Object.keys(data).forEach(k => {
+            self[k] = data[k];
+          });
+        };
+        chatSocket.onclose = function (e) {
+          console.error('Chat socket closed unexpectedly');
+          setTimeout(setupWebSocket, 1000);
+        };
+        this.sendMessage = (obj) => {
+          chatSocket.send(JSON.stringify(obj))
+        }
+      }
+      setupWebSocket();
     },
     components: {
       'text-component': {

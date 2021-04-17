@@ -26,8 +26,10 @@ def initialize_lockbox(game, component, run_component_code):
 
 def validate_lockbox(game, component, run_component_code):
     if component["data"]["value"] == component["data"]["solution"]:
-        disable(game, "intro.lockbox*", run_component_code)
-        change(game, "intro.title", "data.content", "Keeping together is progress")
+        disable(game, "intro.lockbox", run_component_code)
+        for player in all_players_except(game, component["visibility"][0]):
+            disable(game, "intro.lockbox.part.%s" % player, run_component_code)
+        change(game, "intro.title", "data.content", "<h1>Keeping together is progress</h1>")
 
 
 def start(game, component, run_component_code):

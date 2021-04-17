@@ -41,7 +41,8 @@ def game_join(request, game_id):
     player_id = game.add_player()
     game.save()
 
-    return redirect(game, game_id=game.game_id, player_id=player_id)
+    print(game.game_id, "plid", player_id)
+    return redirect("game", game_id=game.game_id, player_id=player_id)
 
 
 def game_multi(request, game_id):

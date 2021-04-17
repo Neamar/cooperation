@@ -92,4 +92,7 @@ class Game(models.Model):
 
     def component_input(self, event):
         component = get_target(self.get_state(), event["component"])
-        run_component_code(component, self.get_state(), "input")
+        value = event["value"]
+        if value != component["data"]["value"]:
+            component["data"]["value"] = value
+            run_component_code(component, self.get_state(), "input")
