@@ -41,11 +41,11 @@ class GameConsumer(WebsocketConsumer):
         t = "ws_%s" % data_json["_type"]
         game = self.get_game()
         if hasattr(game, t):
-            getattr(game, t)(data_json)
+            update_fields = getattr(game, t)(data_json)
         else:
             raise Exception("Unknown type %s" % t)
 
-        game.save()
+        game.save(update_fields=update_fields)
 
     def clean_component_for_sending(self, component):
         """

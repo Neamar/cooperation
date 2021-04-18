@@ -115,6 +115,7 @@ class Game(ExecutableContext):
     def ws_component_click(self, event):
         component = self.get_target(event["component"])
         self.exec(component, "click")
+        return ["components"]
 
     def ws_component_input(self, event):
         component = self.get_target(event["component"])
@@ -122,3 +123,4 @@ class Game(ExecutableContext):
         if value != component["data"]["value"]:
             change(self, component, "data.value", value)
             self.exec(component, "input")
+        return ["components"]

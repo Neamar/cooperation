@@ -53,6 +53,6 @@ def game_multi(request, game_id):
     else:
         for i in range(0, 3):
             player_ids.append(game.add_player())
-        game.save()
+        game.save(update_fields=["players"])
 
     return render(request, "game/multi.html", {"game_id": game_id, "player_ids": player_ids})
