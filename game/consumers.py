@@ -17,18 +17,31 @@ class GameConsumer(WebsocketConsumer):
         self.player_id = self.scope["url_route"]["kwargs"]["player_id"]
 
         game = self.get_game()
+
+        # Ensure we have a valid handle to the game
+        if self.player_id not in game.players:
+            self.reject()
+            return
         self.room_group_name = game.get_channel_name()
 
-        # Join room group
+        # Update player
+        game.players[self.player_id]["connected"] = game.players[self.player_id]["connected"] + 1
+        game.save(update_fields=["players"])
+
+        # Join room group (after having added the player)
         async_to_sync(self.channel_layer.group_add)(self.room_group_name, self.channel_name)
 
         self.accept()
-
         self.send_update({"status": game.status, "components": game.components, "players": game.players})
 
+    @transaction.atomic
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
+
+        game = self.get_game()
+        game.players[self.player_id]["connected"] = game.players[self.player_id]["connected"] - 1
+        game.save(update_fields=["players"])
 
     def get_game(self):
         """

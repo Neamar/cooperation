@@ -15,7 +15,7 @@ def index(request):
     # Create a new game
     components = serialize(LEVEL)
 
-    game = Game(game_id=randint(1, 2147483640), components=components, players=[])
+    game = Game(game_id=randint(1, 2147483640), components=components)
     game.save()
 
     if "multi" in request.GET:
@@ -38,21 +38,22 @@ def game_join(request, game_id):
     if game.status != Game.GATHERING_PLAYERS:
         return HttpResponseGone("Can't join game anymore")
 
-    player = game.add_player()
+    player_id = game.add_player()
     game.save(update_fields=["players"])
 
-    return redirect("game", game_id=game.game_id, player_id=player["player_id"])
+    return redirect("game", game_id=game.game_id, player_id=player_id)
 
 
+@transaction.atomic
 def game_multi(request, game_id):
     game = get_object_or_404(Game, game_id=game_id)
 
     player_ids = []
     if len(game.players) > 0:
-        player_ids = [p["player_id"] for p in game.players]
+        player_ids = game.player_ids
     else:
         for i in range(0, 3):
-            player_ids.append(game.add_player()["player_id"])
+            player_ids.append(game.add_player())
         game.save(update_fields=["players"])
 
     return render(request, "game/multi.html", {"game_id": game_id, "player_ids": player_ids})

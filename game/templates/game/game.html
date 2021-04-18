@@ -1,15 +1,19 @@
 {% extends "base.html"%}
 
 {% block content %}
-
+<style>
+  .is_not_connected {
+    color: red;
+  }
+</style>
 
 <p><a href="/game/">New game</a> | <a href="/game/?multi">New game (multi)</a></p>
 {% verbatim %}
 <div id="app">
-  <h2>{{ players.length }} players</h2>
+  <h2>{{ Object.keys(players).length }} players</h2>
   <ul>
-    <li v-for="player in players">
-      {{ player.name }}
+    <li v-for="(player, playerId) in players">
+      <span v-bind:class="(player.connected > 0) ?'is_connected':'is_not_connected'">{{ player.name }}</span>
     </li>
   </ul>
 
@@ -39,7 +43,7 @@
       return {
         gameId,
         status: 'GATH',
-        players: ["loading..."],
+        players: { "p-1": { name: "loading...", connected: 0 } },
         components: []
       }
     },

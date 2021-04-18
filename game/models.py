@@ -13,11 +13,11 @@ class ExecutableContext(models.Model):
         abstract = True
 
     components = models.JSONField()
-    players = models.JSONField()
+    players = models.JSONField(default=dict)
 
     @property
     def player_ids(self):
-        return [p["player_id"] for p in self.players]
+        return list(self.players.keys())
 
     def mark_dirty(self, component):
         """
@@ -98,10 +98,11 @@ class Game(ExecutableContext):
         return "%s" % self.game_id
 
     def add_player(self):
-        player = {"player_id": "p%s" % randint(1, 2147483640), "name": random_player_name()}
+        player_id = "p%s" % randint(1, 2147483640)
+        player = {"name": random_player_name(), "connected": 0}
 
-        self.players.append(player)
-        return player
+        self.players[player_id] = player
+        return player_id
 
     def ws_start_game(self, event):
         if self.status == Game.GATHERING_PLAYERS:
