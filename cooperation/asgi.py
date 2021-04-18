@@ -9,13 +9,12 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 
 import os
 
-
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-import game.routing
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cooperation.settings")
 
+import game.routing
 
 application = ProtocolTypeRouter(
     {
