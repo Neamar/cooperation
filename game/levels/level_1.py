@@ -61,9 +61,10 @@ def button_mouse_enter(ctx, component, player_id):
                 disable(ctx, "intro.simultaneous-buttons.%s" % i)
 
 
-def button_mouse_leave(ctx, component):
-    change(ctx, component, "data.content", "Hover me!")
-    change(ctx, component, "data.owner", None)
+def button_mouse_leave(ctx, component, player_id):
+    if component["data"]["owner"] == player_id:
+        change(ctx, component, "data.content", "Hover me!")
+        change(ctx, component, "data.owner", None)
 
 
 LEVEL = [
