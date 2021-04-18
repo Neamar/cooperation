@@ -47,17 +47,18 @@ def initialize_buttons(ctx, component):
 
 
 def button_mouse_enter(ctx, component, player_id):
-    change(ctx, component, "data.content", "Hovered by %s" % ctx.players[player_id]["name"])
-    change(ctx, component, "data.owner", player_id)
+    if component["data"]["owner"] is None:
+        change(ctx, component, "data.content", "Hovered by %s" % ctx.players[player_id]["name"])
+        change(ctx, component, "data.owner", player_id)
 
-    for i in range(0, len(ctx.player_ids)):
-        data = ctx.get_target("intro.simultaneous-buttons.%s" % i)["data"]
-        if "owner" not in data or data["owner"] is None:
-            break
-    else:
-        disable(ctx, "intro.t3")
         for i in range(0, len(ctx.player_ids)):
-            disable(ctx, "intro.simultaneous-buttons.%s" % i)
+            data = ctx.get_target("intro.simultaneous-buttons.%s" % i)["data"]
+            if data["owner"] is None:
+                break
+        else:
+            disable(ctx, "intro.t3")
+            for i in range(0, len(ctx.player_ids)):
+                disable(ctx, "intro.simultaneous-buttons.%s" % i)
 
 
 def button_mouse_leave(ctx, component):
@@ -134,7 +135,7 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
         "id": "intro.simultaneous-buttons",
         "type": "button",
         "visibility": ["__all__"],
-        "data": {"content": "Hover me!"},
+        "data": {"content": "Hover me!", "owner": None},
         "behaviors": {
             "mouseover": [button_mouse_enter],
             "mouseleave": [button_mouse_leave],
