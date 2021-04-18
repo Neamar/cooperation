@@ -11,7 +11,7 @@ def init(ctx, component):
 
 
 def initialize_lockbox(ctx, component):
-    change(ctx, component, "data.solution", random_pin(len(ctx.players) - 1))
+    change(ctx, component, "internal_data.solution", random_pin(len(ctx.players) - 1))
     main_player = random_player(ctx)
     change(ctx, component, "visibility", [main_player])
 
@@ -19,13 +19,13 @@ def initialize_lockbox(ctx, component):
         duplicated_component = duplicate(ctx, "intro.lockbox.part", "intro.lockbox.part.%s" % player)
         change(ctx, duplicated_component, "visibility", [player])
         n = "X" * (len(ctx.players) - 1)
-        n = n[0:i] + component["data"]["solution"][i] + n[i + 1 :]
+        n = n[0:i] + component["internal_data"]["solution"][i] + n[i + 1 :]
         change(ctx, duplicated_component, "data.value", n)
         enable(ctx, duplicated_component)
 
 
 def validate_lockbox(ctx, component):
-    if component["data"]["value"] == component["data"]["solution"]:
+    if component["data"]["value"] == component["internal_data"]["solution"]:
         disable(ctx, "intro.lockbox")
         for player in all_players_except(ctx, component["visibility"][0]):
             disable(ctx, "intro.lockbox.part.%s" % player)
@@ -82,7 +82,6 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
             "data": {
                 "value": 0,
                 "type": "number",
-                "solution": 0,
             },
             "behaviors": {
                 "enable": [initialize_lockbox],

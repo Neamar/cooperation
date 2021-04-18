@@ -54,6 +54,7 @@ class GameConsumer(WebsocketConsumer):
         component_to_send = component.copy()
         component_to_send.pop("visibility")
         component_to_send.pop("state")
+        component_to_send.pop("internal_data")
         behaviors = component_to_send.pop("behaviors")
         component_to_send["behaviors"] = list(behaviors.keys())
         return component_to_send

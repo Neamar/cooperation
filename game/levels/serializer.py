@@ -29,6 +29,8 @@ def serialize(level):
             component["visibility"] = []
         if "data" not in component:
             component["data"] = {}
+        if "internal_data" not in component:
+            component["internal_data"] = {}
         if "behaviors" not in component:
             component["behaviors"] = {}
     level["players"] = []
