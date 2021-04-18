@@ -11,15 +11,8 @@ class ExecutableContext(models.Model):
     class Meta:
         abstract = True
 
-    state = models.JSONField()
-
-    @property
-    def players(self):
-        return self.state["players"]
-
-    @property
-    def components(self):
-        return self.state["components"]
+    components = models.JSONField()
+    players = models.JSONField()
 
     def mark_dirty(self, component):
         """

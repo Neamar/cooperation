@@ -12,7 +12,7 @@ def game_saved(sender, instance, created, update_fields, **kwargs):
     Notify any player currently on the game
     """
     if update_fields is None:
-        update_fields = ["status", "state"]
+        update_fields = ["status", "components", "players"]
 
     payload = {}
     for field in update_fields:

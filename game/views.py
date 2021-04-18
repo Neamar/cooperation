@@ -13,9 +13,9 @@ from .models import Game
 
 def index(request):
     # Create a new game
-    default_state = serialize(LEVEL)
+    components = serialize(LEVEL)
 
-    game = Game(game_id=randint(1, 2147483640), state=default_state)
+    game = Game(game_id=randint(1, 2147483640), components=components, players=[])
     game.save()
 
     if "multi" in request.GET:
@@ -39,7 +39,7 @@ def game_join(request, game_id):
         return HttpResponseGone("Can't join game anymore")
 
     player_id = game.add_player()
-    game.save()
+    game.save(update_fields=["players"])
 
     return redirect("game", game_id=game.game_id, player_id=player_id)
 

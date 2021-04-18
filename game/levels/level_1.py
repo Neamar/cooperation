@@ -39,62 +39,60 @@ def start(ctx):
     enable(ctx, "intro.lockbox")
 
 
-LEVEL = {
-    "components": [
-        {
-            "id": "intro.title",
-            "type": "text",
-            "state": "active",
-            "visibility": ["__all__"],
-            "data": {"content": "<h1>Coming together is a beginning.</h1>"},
+LEVEL = [
+    {
+        "id": "intro.title",
+        "type": "text",
+        "state": "active",
+        "visibility": ["__all__"],
+        "data": {"content": "<h1>Coming together is a beginning.</h1>"},
+    },
+    {
+        "id": "intro.t1",
+        "type": "text",
+        "state": "active",
+        "data": {"content": "<p>Wait for instructions.</p>"},
+        "behaviors": {
+            "enable": [init],
         },
-        {
-            "id": "intro.t1",
-            "type": "text",
-            "state": "active",
-            "data": {"content": "<p>Wait for instructions.</p>"},
-            "behaviors": {
-                "enable": [init],
-            },
-        },
-        {
-            "id": "intro.t2",
-            "type": "text",
-            "state": "active",
-            "data": {
-                "content": """
+    },
+    {
+        "id": "intro.t2",
+        "type": "text",
+        "state": "active",
+        "data": {
+            "content": """
 <p>Welcome!<br>
 This is a game of cooperation.<br>Please make sure that everyone can hear you, and that you can hear everyone, then press the button below.</p>""",
-            },
         },
-        {
-            "id": "intro.b1",
-            "type": "button",
-            "state": "active",
-            "data": {"content": "Let's go!"},
-            "behaviors": {
-                "click": [start],
-            },
+    },
+    {
+        "id": "intro.b1",
+        "type": "button",
+        "state": "active",
+        "data": {"content": "Let's go!"},
+        "behaviors": {
+            "click": [start],
         },
-        {
-            "id": "intro.lockbox",
-            "type": "lockbox",
-            "data": {
-                "value": 0,
-                "type": "number",
-            },
-            "behaviors": {
-                "enable": [initialize_lockbox],
-                "input": [validate_lockbox],
-            },
+    },
+    {
+        "id": "intro.lockbox",
+        "type": "lockbox",
+        "data": {
+            "value": 0,
+            "type": "number",
         },
-        {
-            "id": "intro.lockbox.part",
-            "type": "lockbox",
-            "data": {
-                "value": "",
-                "disabled": True,
-            },
+        "behaviors": {
+            "enable": [initialize_lockbox],
+            "input": [validate_lockbox],
         },
-    ],
-}
+    },
+    {
+        "id": "intro.lockbox.part",
+        "type": "lockbox",
+        "data": {
+            "value": "",
+            "disabled": True,
+        },
+    },
+]

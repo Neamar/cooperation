@@ -18,9 +18,9 @@ def stringify_functions(obj):
     raise TypeError("Can't serialize object of type %s", type(obj))
 
 
-def serialize(level):
+def serialize(components):
     # ensure every single component has the bare minimum
-    for component in level["components"]:
+    for component in components:
         if "type" not in component:
             component["type"] = "text"
         if "state" not in component:
@@ -33,6 +33,5 @@ def serialize(level):
             component["internal_data"] = {}
         if "behaviors" not in component:
             component["behaviors"] = {}
-    level["players"] = []
 
-    return json.loads(json.dumps(level, default=stringify_functions))
+    return json.loads(json.dumps(components, default=stringify_functions))

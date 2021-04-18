@@ -22,7 +22,7 @@ class GameConsumer(WebsocketConsumer):
 
         self.accept()
 
-        self.send_update({"status": game.status, "state": game.state})
+        self.send_update({"status": game.status, "components": game.components, "players": game.players})
 
     def disconnect(self, close_code):
         # Leave room group
@@ -67,15 +67,15 @@ class GameConsumer(WebsocketConsumer):
         if "dirty_players" in event and self.player_id not in event["dirty_players"]:
             return  # player is not impacted by this change
 
-        if "state" in event:
-            game_state = event["state"]
-
-            out["players"] = game_state["players"]
+        if "components" in event:
+            components = event["components"]
             out["components"] = [
                 self.clean_component_for_sending(c)
-                for c in game_state["components"]
+                for c in components
                 if c["state"] == "active" and self.player_id in c["visibility"]
             ]
+        if "players" in event:
+            out["players"] = event["players"]
         if "status" in event:
             out["status"] = event["status"]
 
