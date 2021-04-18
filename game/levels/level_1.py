@@ -55,8 +55,9 @@ def button_mouse_enter(ctx, component, player_id):
         if "owner" not in data or data["owner"] is None:
             break
     else:
+        disable(ctx, "intro.t3")
         for i in range(0, len(ctx.player_ids)):
-            disable("intro.simultaneous-buttons.%s" % i)
+            disable(ctx, "intro.simultaneous-buttons.%s" % i)
 
 
 def button_mouse_leave(ctx, component):
