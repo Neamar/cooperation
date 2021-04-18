@@ -45,7 +45,7 @@ class ExecutableContext(models.Model):
             else:
                 raise Exception("Invalid target: %s" % target)
 
-    def exec(self, component, action):
+    def exec(self, component, action, player_id=None):
         if action not in component["behaviors"]:
             return
         functions = component["behaviors"][action]
@@ -68,6 +68,7 @@ class ExecutableContext(models.Model):
                         # send the current context
                         "ctx": self,
                         "component": component,
+                        "player_id": player_id,
                     },
                 )
             except Exception as e:
@@ -104,7 +105,7 @@ class Game(ExecutableContext):
         self.players[player_id] = player
         return player_id
 
-    def ws_start_game(self, event):
+    def ws_start_game(self, player_id, event):
         if self.status == Game.GATHERING_PLAYERS:
             self.status = Game.PLAYING
 
@@ -116,17 +117,27 @@ class Game(ExecutableContext):
             # apply "add" effect for active components
             for component in self.components:
                 if component["state"] == "active":
-                    self.exec(component, "enable")
+                    self.exec(component, "enable", player_id)
 
-    def ws_component_click(self, event):
+    def ws_component_click(self, player_id, event):
         component = self.get_target(event["component"])
-        self.exec(component, "click")
+        self.exec(component, "click", player_id)
         return ["components"]
 
-    def ws_component_input(self, event):
+    def ws_component_mouseover(self, player_id, event):
+        component = self.get_target(event["component"])
+        self.exec(component, "mouseover", player_id)
+        return ["components"]
+
+    def ws_component_mouseleave(self, player_id, event):
+        component = self.get_target(event["component"])
+        self.exec(component, "mouseleave", player_id)
+        return ["components"]
+
+    def ws_component_input(self, player_id, event):
         component = self.get_target(event["component"])
         value = event["value"]
         if value != component["data"]["value"]:
             change(self, component, "data.value", value)
-            self.exec(component, "input")
+            self.exec(component, "input", player_id)
         return ["components"]

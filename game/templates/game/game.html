@@ -25,7 +25,8 @@
   </div>
   <div v-if="status === 'PLAY'">
     <component :is="component.type + '-component'" v-for="component in components" :key="component.id"
-      :data="component.data" @click="click(component)" @input="input(component, $event)"></component>
+      :data="component.data" @click="click(component)" @input="input(component, $event)"
+      @mouseover="mouseover(component)" @mouseleave="mouseleave(component)"></component>
   </div>
 </div>
 {% endverbatim %}
@@ -51,10 +52,19 @@
       startGame() {
         this.sendMessage({ "_type": "start_game" });
       },
-      click(component) {
-        if (component.behaviors.indexOf('click') !== -1) {
-          this.sendMessage({ _type: "component_click", component: component.id })
+      event(eventName, component) {
+        if (component.behaviors.indexOf(eventName) !== -1) {
+          this.sendMessage({ _type: "component_" + eventName, component: component.id })
         }
+      },
+      click(component) {
+        this.event("click", component)
+      },
+      mouseover(component) {
+        this.event("mouseover", component);
+      },
+      mouseleave(component) {
+        this.event("mouseleave", component);
       },
       input(component, event) {
         if (component.behaviors.indexOf('input') !== -1) {

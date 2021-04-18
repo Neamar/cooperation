@@ -10,6 +10,13 @@ def init(ctx, component):
     change(ctx, "intro.b1", "visibility", [main_player])
 
 
+def start_button(ctx):
+    disable(ctx, "intro.t1")
+    disable(ctx, "intro.t2")
+    disable(ctx, "intro.b1")
+    enable(ctx, "intro.lockbox")
+
+
 def initialize_lockbox(ctx, component):
     change(ctx, component, "internal_data.solution", random_pin(len(ctx.players) - 1))
     main_player = random_player(ctx)
@@ -30,13 +37,31 @@ def validate_lockbox(ctx, component):
         for player in all_players_except(ctx, component["visibility"][0]):
             disable(ctx, "intro.lockbox.part.%s" % player)
         change(ctx, "intro.title", "data.content", "<h1>Keeping together is progress</h1>")
+        enable(ctx, "intro.t3")
 
 
-def start(ctx):
-    disable(ctx, "intro.t1")
-    disable(ctx, "intro.t2")
-    disable(ctx, "intro.b1")
-    enable(ctx, "intro.lockbox")
+def initialize_buttons(ctx, component):
+    for i in range(0, len(ctx.player_ids)):
+        duplicated_component = duplicate(ctx, "intro.simultaneous-buttons", "intro.simultaneous-buttons.%s" % i)
+        enable(ctx, duplicated_component)
+
+
+def button_mouse_enter(ctx, component, player_id):
+    change(ctx, component, "data.content", "Hovered by %s" % ctx.players[player_id]["name"])
+    change(ctx, component, "data.owner", player_id)
+
+    for i in range(0, len(ctx.player_ids)):
+        data = ctx.get_target("intro.simultaneous-buttons.%s" % i)["data"]
+        if "owner" not in data or data["owner"] is None:
+            break
+    else:
+        for i in range(0, len(ctx.player_ids)):
+            disable("intro.simultaneous-buttons.%s" % i)
+
+
+def button_mouse_leave(ctx, component):
+    change(ctx, component, "data.content", "Hover me!")
+    change(ctx, component, "data.owner", None)
 
 
 LEVEL = [
@@ -72,7 +97,7 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
         "state": "active",
         "data": {"content": "Let's go!"},
         "behaviors": {
-            "click": [start],
+            "click": [start_button],
         },
     },
     {
@@ -93,6 +118,25 @@ This is a game of cooperation.<br>Please make sure that everyone can hear you, a
         "data": {
             "value": "",
             "disabled": True,
+        },
+    },
+    {
+        "id": "intro.t3",
+        "type": "text",
+        "visibility": ["__all__"],
+        "data": {
+            "content": "Sometimes, you'll need to work together. For instance, here, you need to hover every single button."
+        },
+        "behaviors": {"enable": [initialize_buttons]},
+    },
+    {
+        "id": "intro.simultaneous-buttons",
+        "type": "button",
+        "visibility": ["__all__"],
+        "data": {"content": "Hover me!"},
+        "behaviors": {
+            "mouseover": [button_mouse_enter],
+            "mouseleave": [button_mouse_leave],
         },
     },
 ]
