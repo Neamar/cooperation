@@ -64,19 +64,22 @@ class GameConsumer(WebsocketConsumer):
         Send an update to the connected socket (if relevant)
         """
         out = {}
-        if "dirty_players" in event and self.player_id not in event["dirty_players"]:
-            return  # player is not impacted by this change
 
         if "components" in event:
-            components = event["components"]
-            out["components"] = [
-                self.clean_component_for_sending(c)
-                for c in components
-                if c["state"] == "active" and self.player_id in c["visibility"]
-            ]
+            if "dirty_players" not in event or self.player_id in event["dirty_players"]:
+                # only build if player is dirty (or no dirty players specified)
+                components = event["components"]
+                out["components"] = [
+                    self.clean_component_for_sending(c)
+                    for c in components
+                    if c["state"] == "active" and self.player_id in c["visibility"]
+                ]
         if "players" in event:
             out["players"] = event["players"]
         if "status" in event:
             out["status"] = event["status"]
 
+        if len(out.keys()) == 0:
+            # skip sending empty updates
+            return
         self.send_json(out)

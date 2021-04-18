@@ -38,10 +38,10 @@ def game_join(request, game_id):
     if game.status != Game.GATHERING_PLAYERS:
         return HttpResponseGone("Can't join game anymore")
 
-    player_id = game.add_player()
+    player = game.add_player()
     game.save(update_fields=["players"])
 
-    return redirect("game", game_id=game.game_id, player_id=player_id)
+    return redirect("game", game_id=game.game_id, player_id=player["player_id"])
 
 
 def game_multi(request, game_id):
@@ -49,10 +49,10 @@ def game_multi(request, game_id):
 
     player_ids = []
     if len(game.players) > 0:
-        player_ids = game.players
+        player_ids = [p["player_id"] for p in game.players]
     else:
         for i in range(0, 3):
-            player_ids.append(game.add_player())
+            player_ids.append(game.add_player()["player_id"])
         game.save(update_fields=["players"])
 
     return render(request, "game/multi.html", {"game_id": game_id, "player_ids": player_ids})

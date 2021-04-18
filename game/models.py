@@ -5,6 +5,7 @@ from django.db import models
 from game.levels.components import change, disable, duplicate, enable
 from game.levels.players import all_players_except, random_player
 from game.levels.utils import random_pin
+from game.utils import random_player_name
 
 
 class ExecutableContext(models.Model):
@@ -13,6 +14,10 @@ class ExecutableContext(models.Model):
 
     components = models.JSONField()
     players = models.JSONField()
+
+    @property
+    def player_ids(self):
+        return [p["player_id"] for p in self.players]
 
     def mark_dirty(self, component):
         """
@@ -93,10 +98,10 @@ class Game(ExecutableContext):
         return "%s" % self.game_id
 
     def add_player(self):
-        player_id = "p%s" % randint(1, 2147483640)
+        player = {"player_id": "p%s" % randint(1, 2147483640), "name": random_player_name()}
 
-        self.players.append(player_id)
-        return player_id
+        self.players.append(player)
+        return player
 
     def ws_start_game(self, event):
         if self.status == Game.GATHERING_PLAYERS:
@@ -105,7 +110,7 @@ class Game(ExecutableContext):
             # mark components as visible for players
             for component in self.components:
                 if len(component["visibility"]) and component["visibility"][0] == "__all__":
-                    component["visibility"] = self.players
+                    component["visibility"] = self.player_ids
 
             # apply "add" effect for active components
             for component in self.components:
