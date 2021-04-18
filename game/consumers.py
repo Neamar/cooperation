@@ -2,6 +2,7 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from django.db import transaction
 
 from game.models import Game
 
@@ -10,6 +11,7 @@ class GameConsumer(WebsocketConsumer):
     def send_json(self, obj):
         self.send(text_data=json.dumps(obj))
 
+    @transaction.atomic
     def connect(self):
         self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
         self.player_id = self.scope["url_route"]["kwargs"]["player_id"]
@@ -29,9 +31,15 @@ class GameConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
 
     def get_game(self):
-        return Game.objects.get(game_id=self.game_id)
+        """
+        Retrieve the game, **selecting it for update**
+        This locks the game until the current transaction finishes,
+        to avoid concurrent updates
+        """
+        return Game.objects.select_for_update().get(game_id=self.game_id)
 
     # Receive message from WebSocket
+    @transaction.atomic
     def receive(self, text_data):
         """
         Forward socket message to model
