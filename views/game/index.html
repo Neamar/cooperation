@@ -17,13 +17,13 @@
     </li>
   </ul>
 
-  <div v-if="status === 'GATH'">
+  <div v-if="status === 'GATHERING_PLAYERS'">
     <p>Get players to join with: <a v-bind:href="'/game/' +  gameId + '/join'">this link</a></p>
     <button v-on:click="startGame()">Start the game</button>
 
     <p>Clicking this will prevent other players from joining.</p>
   </div>
-  <div v-if="status === 'PLAY'">
+  <div v-if="status === 'PLAYING'">
     <div v-for="component in components" :key="component.id">
       <component :is="component.type + '-component'" :data="component.data" @click="click(component)"
         @input="input(component, $event)" @mouseover="mouseover(component)" @mouseleave="mouseleave(component)">

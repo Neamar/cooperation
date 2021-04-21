@@ -1,14 +1,15 @@
 import Router from '@koa/router';
 import Koa from 'koa';
 import nunjucks from 'koa-nunjucks-async';
-import { create, index as gameIndex, join } from './routes/game.js';
+import websockify from 'koa-websocket';
+import { create, index as gameIndex, join, wsIndex as wsGameIndex } from './routes/game.js';
 import { index } from './routes/index.js';
-const app = new Koa();
+const app = websockify(new Koa());
 const router = new Router();
 
 const nunjucksOptions = {
   opts: {
-    noCache: false,
+    noCache: true,
     throwOnUndefined: false,
   },
   filters: {},
@@ -24,6 +25,15 @@ router.get('/game/:gameId/join', join);
 router.get('/game/:gameId/player/:playerId', gameIndex);
 
 app.use(router.routes()).use(router.allowedMethods());
+
+app.ws.use((ctx) => {
+  try {
+    wsGameIndex(ctx);
+  } catch (e) {
+    console.error('WS ERROR', e);
+  }
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port);
 console.log(`listening on *:${port}`);

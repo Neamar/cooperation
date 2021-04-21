@@ -16,6 +16,7 @@
     "ioredis": "^4.26.0",
     "koa": "^2.13.1",
     "koa-nunjucks-async": "^1.2.0",
+    "koa-websocket": "^6.0.0",
     "nunjucks": "^3.2.3"
   },
   "devDependencies": {
