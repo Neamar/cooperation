@@ -1,6 +1,8 @@
-import { Game, getGameOr404, Player } from '../lib/game.js';
+import { Game, getGameOr404, getPlayerOr404, Player } from '../lib/game.js';
+import levels from '../lib/levels/index.js';
+
 export const create = async (ctx) => {
-  const game = new Game();
+  const game = new Game(levels[0]);
 
   ctx.redirect(`/game/${game.id}/join`);
 };
@@ -8,13 +10,12 @@ export const create = async (ctx) => {
 export const join = async (ctx) => {
   const game = getGameOr404(ctx.params.gameId);
   const player = new Player();
-  game.players.push(player);
+  game.addPlayer(player);
   ctx.redirect(`/game/${game.id}/player/${player.id}`);
 };
 
 export const index = async (ctx) => {
   const game = getGameOr404(ctx.params.gameId);
-
-  console.log(JSON.stringify(game, null, 2));
-  return ctx.render('game/index', { game: game });
+  const player = getPlayerOr404(game, ctx.params.playerId);
+  return ctx.render('game/index', { game: game, player: player });
 };

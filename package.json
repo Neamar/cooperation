@@ -13,15 +13,24 @@
   "type": "module",
   "dependencies": {
     "@koa/router": "^10.0.0",
+    "ioredis": "^4.26.0",
     "koa": "^2.13.1",
     "koa-nunjucks-async": "^1.2.0",
     "nunjucks": "^3.2.3"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.13.14",
+    "@babel/plugin-syntax-class-properties": "^7.12.13",
     "eslint": "^7.24.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1"
+  },
+  "babel": {
+    "presets": [],
+    "plugins": [
+      "@babel/plugin-syntax-class-properties"
+    ]
   }
 }
