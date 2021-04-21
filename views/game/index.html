@@ -1,8 +1,9 @@
-{% extends "views/_layouts/template.html" %}
+{% extends "../_layouts/template.html" %}
 
 {% block content %}
-<p>You're in game <tt>{{ gameId }}</tt></p>
+<p><a href="/game/">New game</a></p>
+<p>You're in game <tt>{{ game.id }}</tt></p>
 
-<p>Your player hash: {{ playerId }}</p>
+<p>Your player hash: {{ game.players }}</p>
 
 {% endblock %}

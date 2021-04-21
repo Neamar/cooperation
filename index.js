@@ -1,39 +1,29 @@
-import fastify from 'fastify';
-import pointOfView from 'point-of-view';
-import nunjucks from 'nunjucks';
-import fastifySocketIo from 'fastify-socket.io';
-import index from './routes/index.js';
-import newGame from './routes/new-game.js';
-import gameIndex from './routes/game/index.js';
-import gameJoin from './routes/game/join.js';
-import gameStart from './routes/game/start.js';
-import gameLobby from './routes/game/lobby.js';
+import Router from '@koa/router';
+import Koa from 'koa';
+import nunjucks from 'koa-nunjucks-async';
+import { create, index as gameIndex, join } from './routes/game.js';
+import { index } from './routes/index.js';
+const app = new Koa();
+const router = new Router();
 
-const app = fastify({ logger: true });
-
-// Set config
-app.register(pointOfView, {
-  engine: {
-    nunjucks,
+const nunjucksOptions = {
+  opts: {
+    noCache: false,
+    throwOnUndefined: false,
   },
-});
-app.register(fastifySocketIo, {});
-
-// Router
-app.get('/', index);
-app.get('/new-game/:id', newGame);
-app.get('/game/:gameId/lobby', gameLobby);
-app.get('/game/:gameId/join', gameJoin);
-app.get('/game/:gameId/start', gameStart);
-app.get('/game/:gameId/player/:playerId', gameIndex);
-
-const start = async (port) => {
-  try {
-    console.log(`listening on *:${port}`);
-    await app.listen(port);
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
+  filters: {},
+  globals: { title: 'Cooperation' },
+  ext: '.html',
 };
-start(process.env.PORT || 3000);
+
+app.use(nunjucks('views', nunjucksOptions));
+// Router
+router.get('/', index);
+router.get('/game/', create);
+router.get('/game/:gameId/join', join);
+router.get('/game/:gameId/player/:playerId', gameIndex);
+
+app.use(router.routes()).use(router.allowedMethods());
+const port = process.env.PORT || 3000;
+app.listen(port);
+console.log(`listening on *:${port}`);

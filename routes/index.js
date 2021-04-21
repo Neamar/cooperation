@@ -1,3 +1,3 @@
-export default (req, res) => {
-  res.redirect('/new-game/1');
+export const index = (ctx) => {
+  ctx.redirect('/game/');
 };
