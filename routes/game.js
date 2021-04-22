@@ -4,8 +4,11 @@ import { getPlayerOr404, Player } from '../lib/models/player.js';
 
 export const create = async (ctx) => {
   const game = new Game(levels[0]);
-
-  ctx.redirect(`/game/${game.id}/join`);
+  if ('multi' in ctx.query) {
+    ctx.redirect(`/game/${game.id}/multi`);
+  } else {
+    ctx.redirect(`/game/${game.id}/join`);
+  }
 };
 
 export const join = async (ctx) => {
@@ -19,6 +22,15 @@ export const index = async (ctx) => {
   const game = getGameOr404(ctx.params.gameId);
   const player = getPlayerOr404(game, ctx.params.playerId);
   return ctx.render('game/index', { game: game, player: player });
+};
+
+export const multi = async (ctx) => {
+  const game = getGameOr404(ctx.params.gameId);
+  while (game.playerIds.length < 3) {
+    const player = new Player(game);
+    game.addPlayer(player);
+  }
+  return ctx.render('game/multi', { game: game });
 };
 
 const routeRegexp = /^\/ws\/game\/([0-9]+)\/player\/(p[0-9]+)$/;
