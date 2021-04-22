@@ -11,6 +11,7 @@
 {% verbatim %}
 <div id="app">
   <h2>{{ Object.keys(players).length }} players</h2>
+  <p v-if="!wsConnected">You are currently disconnected.</p>
   <ul>
     <li v-for="(player, playerId) in players">
       <span v-bind:class="(player.connected > 0) ?'is_connected':'is_not_connected'">{{ player.name }}</span>
@@ -37,6 +38,7 @@
 {% block script %}
 <script src="https://unpkg.com/vue@next"></script>
 <script>
+  'use strict';
   const gameId = "{{ game.id }}";
   const playerId = "{{ player.id }}";
 
@@ -45,6 +47,7 @@
     data() {
       return {
         gameId,
+        wsConnected: false,
         status: 'GATH',
         players: { "p-1": { name: "loading...", connected: 0 } },
         components: []
@@ -52,25 +55,25 @@
     },
     methods: {
       startGame() {
-        this.sendMessage({ "_type": "start_game" });
+        this.sendMessage({ "_type": "StartGame" });
       },
       event(eventName, component) {
-        if (component.behaviors.indexOf(eventName) !== -1) {
-          this.sendMessage({ _type: "component_" + eventName, component: component.id })
+        if (component.behaviors.indexOf(eventName.toLowerCase()) !== -1) {
+          this.sendMessage({ _type: "Component" + eventName, component: component.id })
         }
       },
       click(component) {
-        this.event("click", component)
+        this.event("Click", component)
       },
       mouseover(component) {
-        this.event("mouseover", component);
+        this.event("Mouseover", component);
       },
       mouseleave(component) {
-        this.event("mouseleave", component);
+        this.event("Mouseleave", component);
       },
       input(component, event) {
         if (component.behaviors.indexOf('input') !== -1) {
-          this.sendMessage({ _type: "component_input", component: component.id, value: event.target.value })
+          this.sendMessage({ _type: "ComponentInput", component: component.id, value: event.target.value })
         }
       }
     },
@@ -86,14 +89,20 @@
           + playerId
         );
         chatSocket.onmessage = function (e) {
+          if (typeof (e.data) == 'object') {
+            // I'm getting some empty blobs? skip those
+            return;
+          }
           const data = JSON.parse(e.data);
           console.log(playerId, data)
           Object.keys(data).forEach(k => {
             self[k] = data[k];
           });
+          self.wsConnected = true;
         };
         chatSocket.onclose = function (e) {
           console.error('Chat socket closed unexpectedly');
+          self.wsConnected = false;
           setTimeout(setupWebSocket, 1000);
         };
         this.sendMessage = (obj) => {
