@@ -1,0 +1,15 @@
+{% extends "../_layouts/template.html" %}
+
+{% block content %}
+<style>
+  iframe {
+    height: 90vh;
+    width: 30%;
+  }
+</style>
+<p><a href="/game/">New game</a> | <a href="/game/?multi">New game (multi)</a></p>
+
+{% for playerId in game.playerIds %}
+<iframe src="/game/{{ game.id }}/player/{{ playerId }}"></iframe>
+{% endfor %}
+{% endblock %}

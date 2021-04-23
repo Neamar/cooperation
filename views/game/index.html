@@ -1,0 +1,135 @@
+{% extends "../_layouts/template.html" %}
+
+{% block content %}
+<style>
+  .is_not_connected {
+    color: red;
+  }
+</style>
+
+<p><a href="/game/">New game</a> | <a href="/game/?multi">New game (multi)</a></p>
+{% verbatim %}
+<div id="app">
+  <h2>{{ Object.keys(players).length }} players</h2>
+  <p v-if="!wsConnected">You are currently disconnected.</p>
+  <ul>
+    <li v-for="(player, playerId) in players">
+      <span v-bind:class="(player.connected > 0) ?'is_connected':'is_not_connected'">{{ player.name }}</span>
+    </li>
+  </ul>
+
+  <div v-if="status === 'GATHERING_PLAYERS'">
+    <p>Get players to join with: <a v-bind:href="'/game/' +  gameId + '/join'">this link</a></p>
+    <button v-on:click="startGame()">Start the game</button>
+
+    <p>Clicking this will prevent other players from joining.</p>
+  </div>
+  <div v-if="status === 'PLAYING'">
+    <div v-for="component in components" :key="component.id">
+      <component :is="component.type + '-component'" :data="component.data" @click="click(component)"
+        @input="input(component, $event)" @mouseover="mouseover(component)" @mouseleave="mouseleave(component)">
+      </component>
+    </div>
+  </div>
+</div>
+{% endverbatim %}
+
+{% endblock %}
+{% block script %}
+<script src="https://unpkg.com/vue@next"></script>
+<script>
+  'use strict';
+  const gameId = "{{ game.id }}";
+  const playerId = "{{ player.id }}";
+
+  const app = Vue.createApp({
+    name: 'MainApp',
+    data() {
+      return {
+        gameId,
+        wsConnected: false,
+        status: 'GATH',
+        players: { "p-1": { name: "loading...", connected: 0 } },
+        components: []
+      }
+    },
+    methods: {
+      startGame() {
+        this.sendMessage({ "_type": "StartGame" });
+      },
+      event(eventName, component) {
+        if (component.behaviors.indexOf(eventName.toLowerCase()) !== -1) {
+          this.sendMessage({ _type: "Component" + eventName, component: component.id })
+        }
+      },
+      click(component) {
+        this.event("Click", component)
+      },
+      mouseover(component) {
+        this.event("Mouseover", component);
+      },
+      mouseleave(component) {
+        this.event("Mouseleave", component);
+      },
+      input(component, event) {
+        if (component.behaviors.indexOf('input') !== -1) {
+          this.sendMessage({ _type: "ComponentInput", component: component.id, value: event.target.value })
+        }
+      }
+    },
+    mounted() {
+      const self = this;
+      const setupWebSocket = () => {
+        const chatSocket = new WebSocket(
+          (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+          + window.location.host
+          + '/ws/game/'
+          + gameId
+          + '/player/'
+          + playerId
+        );
+        chatSocket.onmessage = function (e) {
+          if (typeof (e.data) == 'object') {
+            // I'm getting some empty blobs? skip those
+            return;
+          }
+          const data = JSON.parse(e.data);
+          console.log(playerId, data)
+          Object.keys(data).forEach(k => {
+            self[k] = data[k];
+          });
+          self.wsConnected = true;
+        };
+        chatSocket.onclose = function (e) {
+          console.error('Chat socket closed unexpectedly');
+          self.wsConnected = false;
+          setTimeout(setupWebSocket, 1000);
+        };
+        this.sendMessage = (obj) => {
+          chatSocket.send(JSON.stringify(obj))
+        }
+      }
+      setupWebSocket();
+    },
+    components: {
+      'text-component': {
+        name: 'Text',
+        template: `<div v-html="data.content"></div>`,
+        props: ['data'],
+      },
+      'button-component': {
+        name: 'Button',
+        template: `<input type="button" v-bind:value="data.content" />`,
+        props: ['data'],
+      },
+      'lockbox-component': {
+        name: 'Lockbox',
+        template: `<input v-bind:type="data.type ? data.type : 'text'" v-model="data.value" v-bind:disabled="data.disabled" />`,
+        props: ['data'],
+      }
+    }
+  });
+
+  app.mount('#app');
+</script>
+{% endblock %}
