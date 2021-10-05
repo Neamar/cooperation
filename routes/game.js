@@ -53,7 +53,10 @@ export const wsIndex = async (ctx) => {
       const message = JSON.parse(stringMessage);
       // do something with the message from client
       console.log(`Received ${message._type}`);
+
+      // Check if game can handle this message type
       if (game[`ws${message._type}`]) {
+        // Apply changes, retrieve list of what got updated
         const updated = game[`ws${message._type}`](message, playerId);
         game.broadcast(updated);
       } else {
