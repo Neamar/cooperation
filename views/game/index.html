@@ -58,7 +58,7 @@
         this.sendMessage({ "_type": "StartGame" });
       },
       event(eventName, component) {
-        if (component.behaviors.indexOf(eventName.toLowerCase()) !== -1) {
+        if (component.behaviors.indexOf(`on${eventName}`) !== -1) {
           this.sendMessage({ _type: "Component" + eventName, component: component.id })
         }
       },
@@ -72,7 +72,7 @@
         this.event("Mouseleave", component);
       },
       input(component, event) {
-        if (component.behaviors.indexOf('input') !== -1) {
+        if (component.behaviors.indexOf('onInput') !== -1) {
           this.sendMessage({ _type: "ComponentInput", component: component.id, value: event.target.value })
         }
       }
